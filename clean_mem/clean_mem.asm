@@ -7,7 +7,7 @@ Start:
     sei                         ; disable interrupts
     cld                         ; disable binary-coded decimal system
     ldx #$FF                    ; load the literal $FF into X
-    tsx                         ; transfer X register to the stack pointer
+    txs                         ; transfer X register to the stack pointer
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Clear memory page zero region
