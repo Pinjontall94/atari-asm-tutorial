@@ -26,7 +26,7 @@ Start:
     ldx #$00                    ; Background color
     stx COLUBK
 
-    lda #9
+    lda #11
     sta P0Height
 
     lda #$A2
@@ -43,9 +43,11 @@ NextFrame:
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Generate 3 VSYNC lines
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    REPEAT 3
-        sta WSYNC
-    REPEND
+    ldx #3
+LoopVsync:
+    sta WSYNC
+    dex
+    bne LoopVsync
     lda #0
     sta VSYNC
 
@@ -53,9 +55,11 @@ NextFrame:
 ;;; Generate 37 ($25) VBLANK lines and
 ;;;   turn off VSYNC/BLANK
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    REPEAT 37
-        sta WSYNC
-    REPEND
+    ldx #$25
+LoopVblank:
+    sta WSYNC
+    dex
+    bne LoopVblank
     lda #0
     sta VBLANK
 
@@ -114,6 +118,8 @@ P0Bitmap:
     .byte #$00            ;
     .byte #$92            ; #  #  #
     .byte #$92            ; #  #  #
+    .byte #$92            ; #  #  #
+    .byte #$54            ;  # # #
     .byte #$54            ;  # # #
     .byte #$54            ;  # # #
     .byte #$54            ;  # # #
@@ -127,14 +133,16 @@ P0Bitmap:
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 P0Color:
     .byte #$00
-    .byte #$54
-    .byte #$74
-    .byte #$94
-    .byte #$B4
-    .byte #$D4
-    .byte #$F4
-    .byte #$24
-    .byte #$44
+    .byte #$8C
+    .byte #$8C
+    .byte #$4C
+    .byte #$4C
+    .byte #$0E
+    .byte #$0E
+    .byte #$4C
+    .byte #$4C
+    .byte #$8C
+    .byte #$8C
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Put reset vectors at the last two bytes (per 6502 reqs)
