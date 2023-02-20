@@ -30,10 +30,10 @@ Start:
     lda #11
     sta P0Height
 
-    lda #$A2
+    lda #$82
     sta P0YPos
 
-    lda #$10
+    lda #$28
     sta P0XPos
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -54,18 +54,6 @@ LoopVsync:
     bne LoopVsync
     lda #0
     sta VSYNC
-
-;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Generate 37 ($25) VBLANK lines and
-;;;   turn off VSYNC/BLANK
-;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    ldx #$25
-LoopVblank:
-    sta WSYNC
-    dex
-    bne LoopVblank
-    lda #0
-    sta VBLANK
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Set player horizontal position while in VBLANK
@@ -91,6 +79,17 @@ ModuloLoop:
     sta WSYNC                   ; wait for next scanline
     sta HMOVE                   ; apply the position offset
 
+;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Generate 35 ($23) VBLANK lines and
+;;;   turn off VSYNC/BLANK (37 - 2 from XPos)
+;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ldx #$23
+LoopVblank:
+    sta WSYNC
+    dex
+    bne LoopVblank
+    lda #0
+    sta VBLANK
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Generate 192 ($CO) visible lines
@@ -131,11 +130,17 @@ LoadBitmap:
     sta VBLANK
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Decrement P0YPos for animation
+;;; Inc X coord if 40 < x < 80
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    dec P0YPos
-    inc P0XPos
-
+    lda P0XPos
+    cmp #80
+    bpl ResetXPos               ; if A is greater, reset position
+    jmp IncXPos                 ; else, continue to increment x pos
+ResetXPos:
+    lda #$28
+    sta P0XPos                  ; reset player x pos to 40 (#$28)
+IncXPos:
+    inc P0XPos                  ; inc the player x position
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Loop by jumping to the next frame
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
