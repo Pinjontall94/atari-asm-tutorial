@@ -9,7 +9,8 @@
     seg.u Variables
     org $80
 P0Height byte                  ; Hardcode sprite height to 9 rows
-PlayerYPos byte                 ; Declare var for player Y coordinates
+P0YPos byte                 ; Declare var for player Y coordinates
+P0XPos byte                     ; Declare var for player x coord
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Start our main ROM segment
@@ -30,7 +31,10 @@ Start:
     sta P0Height
 
     lda #$A2
-    sta PlayerYPos
+    sta P0YPos
+
+    lda #$10
+    sta P0XPos
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Turn on VSYNC & VBLANK
@@ -64,6 +68,31 @@ LoopVblank:
     sta VBLANK
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Set player horizontal position while in VBLANK
+;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    lda P0XPos                  ; load acc with desired X position
+
+    sta WSYNC                   ; wait for next scanline
+    sta HMCLR                   ; clear old x pos values
+
+    sec                         ; set carry flag before subtraction
+ModuloLoop:
+    sbc #15                     ; subtract 15 (#$0F)
+    bcs ModuloLoop              ; loop until the carry flag is used up
+                                ;   (acc now contains P0XPos % 15)
+
+    eor #7                      ; adjust range to fit between -8 and +7
+    asl                         ; HMP0 only uses top 4b, so need shift left 4x
+    asl
+    asl
+    asl
+    sta HMP0                    ; set fine position with the modulo value
+    sta RESP0                   ; set coarse value
+    sta WSYNC                   ; wait for next scanline
+    sta HMOVE                   ; apply the position offset
+
+
+;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Generate 192 ($CO) visible lines
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ldx #$C0
@@ -71,7 +100,7 @@ LoopVblank:
 Scanline:
     txa                         ; Transfer X to A
     sec                         ; Make sure carry flag is set
-    sbc PlayerYPos              ; Subtract sprite Y coordinates
+    sbc P0YPos              ; Subtract sprite Y coordinates
     cmp P0Height               ; Are we inside the sprite's bounds?
     bcc LoadBitmap              ; If result < Sprite height, run subroutine
     lda #0                     ; Else, set index to 0
@@ -80,11 +109,12 @@ Scanline:
 LoadBitmap:
     tay
     lda P0Bitmap,Y              ; Load player bitmap slice of data
-    sta WSYNC
 
     sta GRP0                    ; Set graphics for Player 0 slice
     lda P0Color,Y               ; load and set player 0 color from lookup table
     sta COLUP0
+
+    sta WSYNC                   ; Draw scanline and wait for WSYNC signal from TIA chip
 
     dex                         ; Decrement x counter
     bne Scanline                ; Loop scanlines until the x counter reaches 0
@@ -101,9 +131,10 @@ LoadBitmap:
     sta VBLANK
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Decrement PlayerYPos for animation
+;;; Decrement P0YPos for animation
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    dec PlayerYPos
+    dec P0YPos
+    inc P0XPos
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Loop by jumping to the next frame
