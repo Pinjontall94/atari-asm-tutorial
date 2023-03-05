@@ -27,7 +27,7 @@ Start:
     ldx #$00                    ; Background color
     stx COLUBK
 
-    lda #11
+    lda #$B
     sta P0Height
 
     lda #$82
@@ -99,10 +99,10 @@ LoopVblank:
 Scanline:
     txa                         ; Transfer X to A
     sec                         ; Make sure carry flag is set
-    sbc P0YPos              ; Subtract sprite Y coordinates
-    cmp P0Height               ; Are we inside the sprite's bounds?
+    sbc P0YPos                  ; Subtract sprite Y coordinates
+    cmp P0Height                ; Are we inside the sprite's bounds?
     bcc LoadBitmap              ; If result < Sprite height, run subroutine
-    lda #0                     ; Else, set index to 0
+    lda #0                      ; Else, set index to 0
 
 
 LoadBitmap:
