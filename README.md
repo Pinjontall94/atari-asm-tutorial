@@ -5,10 +5,10 @@ from Udemy, taught by Gustavo Pezzi.
 
 
 ## Dependencies
-- Stella VCS Emulator
-- dasm 6502 macroassembler
-- GNU Make
-- Some kind of POSIX Shell (Bash would work fine)
+- [Stella VCS Emulator](https://stella-emu.github.io/downloads.html)
+- [dasm 6502 macroassembler](https://dasm-assembler.github.io/)
+- GNU Make (You probably already have this)
+- Some kind of POSIX Shell (Bash works fine)
 
 The two header files come from the dasm project itself (with all relevant credit 
 due, of course).
